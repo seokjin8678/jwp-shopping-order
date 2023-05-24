@@ -1,0 +1,7 @@
+= Cart
+:toc: left
+:source-highlighter: highlightjs
+:sectlinks:
+
+include::{snippets}/findAll/http-request.adoc[]
+include::{snippets}/findAll/http-response.adoc[]

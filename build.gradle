@@ -2,9 +2,14 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '2.7.9'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 sourceCompatibility = '11'
+
+configurations {
+    asciidoctorExt // asciidoctor를 확장하는 종속성에 대한 구성 선언
+}
 
 repositories {
     mavenCentral()
@@ -19,8 +24,32 @@ dependencies {
     testImplementation 'io.rest-assured:rest-assured:4.4.0'
 
     runtimeOnly 'com.h2database:h2'
+
+    // Spring REST Docs 의존성 추가
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    //
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+}
+
+asciidoctor {
+    dependsOn test // asciidoctor를 수행하기전 test를 수행하도록 선언
+    configurations 'asciidoctorExt'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('copyApiDocument', Copy) { // 자동으로 생성된 문서를 옮겨주는 copyApiDocument task 선언
+    dependsOn asciidoctor // copyApiDocument를 수행하기전 asciidoctor를 수행하도록 선언
+    doFirst { // 작업이 실행되기전 수행하는 작업 선언
+        delete file("src/main/resources/static/docs") // 기존 문서 삭제
+    }
+    // 생성된 문서를 static/docs로 이동
+    from asciidoctor.outputDir
+    into file("src/main/resources/static/docs")
+}
+
+build {
+    dependsOn copyApiDocument // 프로젝트 빌드 전 copyApiDocument를 실행하도록 변경
 }
